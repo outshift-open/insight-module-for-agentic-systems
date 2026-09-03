@@ -1,7 +1,7 @@
 {
-  "name": "@outshift-open/insightclaw",
+  "name": "@outshift-open/insight-module",
   "version": "0.1.3",
-  "description": "InsightClaw plugin for OpenClaw — traces, metrics, and deep observability for your OpenClaw agents.",
+  "description": "Insight Module plugin for OpenClaw — traces, metrics, and deep observability for your OpenClaw agents.",
   "type": "module",
   "openclaw": {
     "extensions": [
@@ -25,7 +25,7 @@
   "keywords": [
     "openclaw",
     "opentelemetry",
-    "insightclaw",
+    "insight-module",
     "llm",
     "tracing",
     "metrics",
@@ -33,7 +33,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/outshift-open/insightClaw"
+    "url": "https://github.com/outshift-open/insight-module-for-agentic-systems"
   },
   "author": "Pavan S",
   "license": "Apache-2.0",

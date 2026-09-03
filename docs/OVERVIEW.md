@@ -1,4 +1,4 @@
-# InsightClaw Plugin Overview
+# Insight Module Plugin Overview
 
 OpenClaw already exposes useful diagnostic facts such as model usage, queue state, webhook processing, and session health.
 What it does not provide on its own is a single connected story for one request:

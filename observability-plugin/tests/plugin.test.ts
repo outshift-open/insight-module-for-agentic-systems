@@ -76,7 +76,7 @@ test("plugin register wires the gateway method, cli command, tool, and service",
   await plugin.register(api);
 
   assert.equal(calls.registerGatewayMethod.length, 1);
-  assert.equal(calls.registerGatewayMethod[0]?.name, "insightclaw.status");
+  assert.equal(calls.registerGatewayMethod[0]?.name, "insight-module.status");
   assert.equal(calls.registerCli.length, 1);
   assert.deepEqual(calls.registerCli[0]?.options, { commands: ["otel"] });
   assert.equal(calls.registerService.length, 1);
@@ -116,5 +116,5 @@ test("plugin register wires the gateway method, cli command, tool, and service",
 
   const toolRegistration = calls.registerTool[0];
   assert.equal(toolRegistration.options.optional, true);
-  assert.equal(toolRegistration.tool.name, "insightclaw_status");
+  assert.equal(toolRegistration.tool.name, "insight_module_status");
 });

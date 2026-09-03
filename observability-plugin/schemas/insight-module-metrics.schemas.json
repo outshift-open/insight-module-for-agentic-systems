@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://defenseclaw.dev/schemas/otel/insightclaw-metrics.schema.json",
-  "title": "InsightClaw Compatibility Metrics (openclaw.*)",
-  "description": "Metrics emitted by the DefenseClaw InsightClaw adapter for interoperability with InsightClaw dashboards and analytics. Attribute names match the current openclaw.* emitters exactly.",
+  "$id": "https://defenseclaw.dev/schemas/otel/insight-module-metrics.schema.json",
+  "title": "Insight Module Compatibility Metrics (openclaw.*)",
+  "description": "Metrics emitted by the DefenseClaw Insight Module adapter for interoperability with Insight Module dashboards and analytics. Attribute names match the current openclaw.* emitters exactly.",
   "x-emitted-metrics": [
     {
       "name": "openclaw.llm.requests",
@@ -545,7 +545,7 @@
         },
         "experimental": {
           "type": "boolean",
-          "description": "True for metrics gated behind otel.insight_claw.experimental."
+          "description": "True for metrics gated behind otel.insight_module.experimental."
         },
         "attributes": {
           "type": "object",

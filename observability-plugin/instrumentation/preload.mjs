@@ -128,5 +128,5 @@ process.on("SIGTERM", () => sdk.shutdown());
 process.on("SIGINT", () => sdk.shutdown());
 
 console.log(
-  `[insightClaw] GenAI auto instrumentation active (providers=${providerNames.join(",")}, endpoint=${OTLP_ENDPOINT}, IITM loader registered)`
+  `[insight-module] GenAI auto instrumentation active (providers=${providerNames.join(",")}, endpoint=${OTLP_ENDPOINT}, IITM loader registered)`
 );

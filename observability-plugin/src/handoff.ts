@@ -80,7 +80,7 @@ export function onAgentStart(
     attributes["ioa_observe.agent.sequence"] = sequence;
     attributes["ioa_observe.agent.previous"] = state.lastAgentName;
     loggerRef?.debug && loggerRef.debug(
-      `[insightClaw:handoff]   spanLink=traceId:${state.lastAgentSpanContext.traceId}/spanId:${state.lastAgentSpanContext.spanId}`
+      `[insight-module:handoff]   spanLink=traceId:${state.lastAgentSpanContext.traceId}/spanId:${state.lastAgentSpanContext.spanId}`
     );
 
     return {
@@ -117,7 +117,7 @@ export function seedHandoffState(sessionKey: string, seed: HandoffSeed): boolean
   });
 
   loggerRef?.debug && loggerRef.debug(
-    `[insightClaw:handoff] Seeded handoff state: runtimeSession=${sessionKey}, ` +
+    `[insight-module:handoff] Seeded handoff state: runtimeSession=${sessionKey}, ` +
     `previous=${seed.lastAgentName}, seq=${seed.sequence}, spanId=${seed.lastAgentSpanContext.spanId}`
   );
 
@@ -142,12 +142,12 @@ export function registerAgentSpan(
 
   if (previousAgentName) {
     loggerRef?.info && loggerRef.info(
-      `[insightClaw:handoff] Agent handoff detected: runtimeSession=${sessionKey}, ` +
+      `[insight-module:handoff] Agent handoff detected: runtimeSession=${sessionKey}, ` +
       `previous=${previousAgentName} (seq=${sequence - 1}) → current=${agentId} (seq=${sequence})`
     );
   } else {
     loggerRef?.info && loggerRef.info(
-      `[insightClaw:handoff] First agent in chain: runtimeSession=${sessionKey}, agent=${agentId}, seq=${sequence}`
+      `[insight-module:handoff] First agent in chain: runtimeSession=${sessionKey}, agent=${agentId}, seq=${sequence}`
     );
   }
 }
@@ -162,7 +162,7 @@ export function onAgentEnd(sessionKey: string, agentId: string, agentSpan: Span)
     state.lastAgentSpanContext = agentSpan.spanContext();
     state.lastAgentName = agentId;
     loggerRef?.debug && loggerRef.debug(
-      `[insightClaw:handoff] Agent ended, updated handoff state: runtimeSession=${sessionKey}, ` +
+      `[insight-module:handoff] Agent ended, updated handoff state: runtimeSession=${sessionKey}, ` +
       `agent=${agentId}, seq=${state.sequence}, spanId=${agentSpan.spanContext().spanId}`
     );
   }
@@ -176,7 +176,7 @@ export function cleanupHandoff(sessionKey: string): void {
   const had = handoffMap.has(sessionKey);
   handoffMap.delete(sessionKey);
   if (had) {
-    loggerRef?.debug && loggerRef.debug(`[insightClaw:handoff] Cleaned up handoff state for runtimeSession=${sessionKey}`);
+    loggerRef?.debug && loggerRef.debug(`[insight-module:handoff] Cleaned up handoff state for runtimeSession=${sessionKey}`);
   }
 }
 
