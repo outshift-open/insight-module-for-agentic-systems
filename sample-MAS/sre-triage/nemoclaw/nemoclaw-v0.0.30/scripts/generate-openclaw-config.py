@@ -213,7 +213,7 @@ def build_config(env: dict | None = None) -> dict:
         },
         "bonjour": {"enabled": False},
         "qqbot": {"enabled": False},
-        "insightclaw": {
+        "insight-module": {
             "enabled": True,
             "config": {
                 "endpoint": "http://127.0.0.1:4318",

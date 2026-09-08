@@ -349,7 +349,7 @@ export async function registerDiagnosticsListener(
   await loadSdk();
 
   if (!onDiagnosticEvent) {
-    logger.debug("[insightClaw] onDiagnosticEvent not available — using fallback token extraction");
+    logger.debug("[insight-module] onDiagnosticEvent not available — using fallback token extraction");
     return () => {};
   }
 
@@ -483,7 +483,7 @@ export async function registerDiagnosticsListener(
         }
 
         if (model !== "unknown" && usage.input === undefined && usage.output === undefined && usage.total === undefined) {
-          logger.debug(`[insightClaw] model.usage unresolved token shape: ${JSON.stringify(summarizeDiagnosticShape(evt))}`);
+          logger.debug(`[insight-module] model.usage unresolved token shape: ${JSON.stringify(summarizeDiagnosticShape(evt))}`);
         }
 
         if (typeof costUsd === "number" && costUsd > 0) {
@@ -516,7 +516,7 @@ export async function registerDiagnosticsListener(
           parentSpan: agentSpan,
         });
 
-        logger.debug(`[insightClaw] model.usage: runtimeSession=${runtimeSessionKey}, model=${model}, cost=$${costUsd?.toFixed(4) || "?"}, tokens=${usage.total || "?"}`);
+        logger.debug(`[insight-module] model.usage: runtimeSession=${runtimeSessionKey}, model=${model}, cost=$${costUsd?.toFixed(4) || "?"}, tokens=${usage.total || "?"}`);
         return;
       }
 
@@ -721,7 +721,7 @@ export async function registerDiagnosticsListener(
     }
   });
 
-  logger.info("[insightClaw] Subscribed to OpenClaw diagnostic events (model.usage, etc.)");
+  logger.info("[insight-module] Subscribed to OpenClaw diagnostic events (model.usage, etc.)");
   return unsubscribe;
 }
 

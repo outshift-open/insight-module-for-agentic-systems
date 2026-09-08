@@ -130,7 +130,7 @@ export function initTelemetry(config: OtelObservabilityConfig, logger: any): Tel
   const resourceAttrs: Record<string, string> = {
     [ATTR_SERVICE_NAME]: config.serviceName,
     [ATTR_SERVICE_VERSION]: "0.1.0",
-    "openclaw.plugin": "insightClaw",
+    "openclaw.plugin": "insight-module",
     ...config.resourceAttributes,
   };
 
@@ -163,7 +163,7 @@ export function initTelemetry(config: OtelObservabilityConfig, logger: any): Tel
     });
     tracerProvider.register();
 
-    logger.info(`[insightClaw] Trace exporter → ${traceEndpoint} (${config.protocol})`);
+    logger.info(`[insight-module] Trace exporter → ${traceEndpoint} (${config.protocol})`);
   }
 
   // ── Metrics ─────────────────────────────────────────────────────
@@ -189,13 +189,13 @@ export function initTelemetry(config: OtelObservabilityConfig, logger: any): Tel
     // Register as global meter provider so metrics.getMeter() returns a real meter
     metrics.setGlobalMeterProvider(meterProvider);
 
-    logger.info(`[insightClaw] Metrics exporter → ${metricsEndpoint} (${config.protocol}, interval=${config.metricsIntervalMs}ms)`);
+    logger.info(`[insight-module] Metrics exporter → ${metricsEndpoint} (${config.protocol}, interval=${config.metricsIntervalMs}ms)`);
   }
 
   // ── Instruments ─────────────────────────────────────────────────
 
-  const tracer = trace.getTracer("insightClaw", "0.1.0");
-  const meter = metrics.getMeter("insightClaw", "0.1.0");
+  const tracer = trace.getTracer("insight-module", "0.1.0");
+  const meter = metrics.getMeter("insight-module", "0.1.0");
 
   const counters: OtelCounters = {
     llmRequests: meter.createCounter("openclaw.llm.requests", {
@@ -394,21 +394,21 @@ export function initTelemetry(config: OtelObservabilityConfig, logger: any): Tel
     try {
       await tracerProvider.forceFlush();
     } catch (err) {
-      logger.warn?.(`[insightClaw] Trace forceFlush error: ${err instanceof Error ? err.message : String(err)}`);
+      logger.warn?.(`[insight-module] Trace forceFlush error: ${err instanceof Error ? err.message : String(err)}`);
     }
   };
 
   // ── Shutdown ────────────────────────────────────────────────────
 
   const shutdown = async () => {
-    logger.info("[insightClaw] Shutting down telemetry...");
+    logger.info("[insight-module] Shutting down telemetry...");
     clearInterval(metricHeartbeatInterval);
     try {
       await forceFlush();
       if (tracerProvider) await tracerProvider.shutdown();
       if (meterProvider) await meterProvider.shutdown();
     } catch (err) {
-      logger.error(`[insightClaw] Shutdown error: ${err instanceof Error ? err.message : String(err)}`);
+      logger.error(`[insight-module] Shutdown error: ${err instanceof Error ? err.message : String(err)}`);
     }
   };
 

@@ -59,18 +59,18 @@ jobs:
         run: |
           VERSION=$(node -p "require('./package.json').version")
           cd artifact/package
-          zip -r "../insightClaw-${VERSION}.zip" .
+          zip -r "../insight-module-${VERSION}.zip" .
 
       - name: Upload compiled dist
         uses: actions/upload-artifact@v7
         with:
-          name: insightClaw-dist
+          name: insight-module-dist
           path: observability-plugin/dist
 
       - name: Upload release bundle
         uses: actions/upload-artifact@v7
         with:
-          name: insightClaw-bundle
+          name: insight-module-bundle
           path: |
             artifact/package
             artifact/*.zip

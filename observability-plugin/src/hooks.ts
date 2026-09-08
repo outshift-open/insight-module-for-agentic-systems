@@ -773,7 +773,7 @@ function handleToolOutput(
   // Retrieve the span opened in before_tool_call
   const pendingTool = toolCallId ? config.pendingToolSpans.get(toolCallId) : undefined;
   if (!pendingTool) {
-    config.logger.warn?.(`[insightClaw] No pending span for toolCallId=${toolCallId}, tool=${toolName} — skipping output capture`);
+    config.logger.warn?.(`[insight-module] No pending span for toolCallId=${toolCallId}, tool=${toolName} — skipping output capture`);
     return undefined;
   }
   config.pendingToolSpans.delete(toolCallId);
@@ -874,7 +874,7 @@ function handleToolOutput(
   }
 
   span.end();
-  config.logger.info?.(`[insightClaw] after_tool Tool span ended: tool=${toolName}, callId=${toolCallId}, runtimeSession=${runtimeSessionKey}`);
+  config.logger.info?.(`[insight-module] after_tool Tool span ended: tool=${toolName}, callId=${toolCallId}, runtimeSession=${runtimeSessionKey}`);
 
 }
 
@@ -908,7 +908,7 @@ function handleSessionHandoffCall(
   }
   if (targetAgentIds.length > 0) {
     logger.info(
-      `[insightClaw] Prepared agent handoff (${toolName}) from agent=${agentId} to ` +
+      `[insight-module] Prepared agent handoff (${toolName}) from agent=${agentId} to ` +
       `[${targetAgentIds.join(", ")}], runtimeSession=${runtimeSessionKey}`
     );
     for (const targetAgentId of targetAgentIds) {
@@ -927,7 +927,7 @@ function handleSessionHandoffCall(
     }
   } else {
     logger.debug(
-      `[insightClaw] ${toolName} result captured but target agent could not be resolved, runtimeSession=${runtimeSessionKey}`
+      `[insight-module] ${toolName} result captured but target agent could not be resolved, runtimeSession=${runtimeSessionKey}`
     );
   }
 }
@@ -1095,7 +1095,7 @@ function startRootSpan(
   const primaryRuntimeSessionKey = runtimeSessionIdentities[0] || "unknown";
 
   if (primaryRuntimeSessionKey === "unknown") {
-    logger.debug("[insightClaw] Skipping eager request span start because no stable runtime session/conversation key is available yet");
+    logger.debug("[insight-module] Skipping eager request span start because no stable runtime session/conversation key is available yet");
     return undefined;
   }
 
@@ -1198,7 +1198,7 @@ function startRootSpan(
     "openclaw.message.channel": channel,
   });
 
-  logger.info(`[insightClaw] Root span started for runtimeSession=${primaryRuntimeSessionKey}, channel=${channel}`);
+  logger.info(`[insight-module] Root span started for runtimeSession=${primaryRuntimeSessionKey}, channel=${channel}`);
   return sessionCtx;
 }
 
@@ -1299,7 +1299,7 @@ export function registerHooks(
 
     deleteSessionTraceContext(sessionCtx);
     logger.info(
-      `[insightClaw] Trace completed for runtimeSession=${runtimeSessionKey} ` +
+      `[insight-module] Trace completed for runtimeSession=${runtimeSessionKey} ` +
       `(reason=${reason}, ${formatSessionTraceState(sessionCtx)})`
     );
   }
@@ -1367,13 +1367,13 @@ export function registerHooks(
       ensureRuntime();
       const sessionCtx = getSessionTraceContextByIdentities(evt.runtimeSessionIdentities);
       logger.info(
-        `[insightClaw] message.processed observed: runtimeSession=${evt.runtimeSessionKey}, ` +
+        `[insight-module] message.processed observed: runtimeSession=${evt.runtimeSessionKey}, ` +
         `channel=${evt.channel}, outcome=${evt.outcome}, ${formatSessionTraceState(sessionCtx)}`
       );
 
       if (!sessionCtx) {
         logger.warn?.(
-          `[insightClaw] message.processed observed without active trace context: ` +
+          `[insight-module] message.processed observed without active trace context: ` +
           `runtimeSession=${evt.runtimeSessionKey}, channel=${evt.channel}, outcome=${evt.outcome}`
         );
         return;
@@ -1381,7 +1381,7 @@ export function registerHooks(
 
       if (sessionCtx.messageSentAt) {
         logger.info(
-          `[insightClaw] message.processed observed after outbound completion already recorded: ` +
+          `[insight-module] message.processed observed after outbound completion already recorded: ` +
           `runtimeSession=${evt.runtimeSessionKey}, channel=${evt.channel}, outcome=${evt.outcome}`
         );
         return;
@@ -1419,12 +1419,12 @@ export function registerHooks(
       }
 
       logger.info(
-        `[insightClaw] message.processed observed with no pending request root to close: ` +
+        `[insight-module] message.processed observed with no pending request root to close: ` +
         `runtimeSession=${evt.runtimeSessionKey}, channel=${evt.channel}, outcome=${evt.outcome}, ` +
         `${formatSessionTraceState(sessionCtx)}`
       );
     } catch (error) {
-      logger.debug(`[insightClaw] message.processed observer failed: ${String(error)}`);
+      logger.debug(`[insight-module] message.processed observer failed: ${String(error)}`);
     }
   }
 
@@ -1543,10 +1543,10 @@ export function registerHooks(
               });
             }
           } else {
-            logger.warn(`[insightClaw] Unable to compute novelty score for agent=${agentId} due to non-string output`);
+            logger.warn(`[insight-module] Unable to compute novelty score for agent=${agentId} due to non-string output`);
           }
         } else {
-          logger.warn(`[insightClaw] No spawn info found for pending spawn target agent=${agentId}`);
+          logger.warn(`[insight-module] No spawn info found for pending spawn target agent=${agentId}`);
         }
         targetAgentsMap.delete(agentId);
       }
@@ -1574,13 +1574,13 @@ export function registerHooks(
           "ioa_observe.fork.branch_count": forkResult.branchCount,
         });
         logger.info(
-          `[insightClaw] Fork completed: agent=${agentId}, forkId=${forkResult.forkId}, branches=${forkResult.branchCount}`
+          `[insight-module] Fork completed: agent=${agentId}, forkId=${forkResult.forkId}, branches=${forkResult.branchCount}`
         );
       }
 
       onAgentEnd(runtimeSessionKey, agentId, agentSpan);
       logger.info(
-        `[insightClaw] Agent turn ended: agent=${agentId}, runtimeSession=${runtimeSessionKey}, ` +
+        `[insight-module] Agent turn ended: agent=${agentId}, runtimeSession=${runtimeSessionKey}, ` +
         `success=${success}, duration=${durationMs ?? "?"}ms, ` +
         `tokens=${totalTokens}, cost=$${costUsd?.toFixed(4) ?? "?"}`
       );
@@ -1610,7 +1610,7 @@ export function registerHooks(
 
     if (!sessionCtx || sessionCtx.rootSpan === sessionCtx.agentSpan) {
       deleteSessionTraceContext(sessionCtx);
-      logger.info(`[insightClaw] Trace completed for runtimeSession=${runtimeSessionKey} (reason=agent_end)`);
+      logger.info(`[insight-module] Trace completed for runtimeSession=${runtimeSessionKey} (reason=agent_end)`);
       return;
     }
 
@@ -1645,7 +1645,7 @@ export function registerHooks(
         }
       );
       logger.info(
-        `[insightClaw] Inferred outbound completion from agent_end for runtimeSession=${runtimeSessionKey}, ` +
+        `[insight-module] Inferred outbound completion from agent_end for runtimeSession=${runtimeSessionKey}, ` +
         `channel=${sessionCtx.messageChannel}`
       );
       finalizeRootSpan(
@@ -1658,7 +1658,7 @@ export function registerHooks(
     }
 
     logger.info(
-      `[insightClaw] Request span awaiting outbound completion: runtimeSession=${runtimeSessionKey}, ` +
+      `[insight-module] Request span awaiting outbound completion: runtimeSession=${runtimeSessionKey}, ` +
       `graceMs=${ROOT_COMPLETION_GRACE_MS}, ${formatSessionTraceState(sessionCtx)}`
     );
   }
@@ -1702,7 +1702,7 @@ export function registerHooks(
 
           if (sessionCtx.pendingRootRuntimeSessionIdentities && !sessionCtx.agentSpan) {
             logger.warn?.(
-              `[insightClaw] Closing previous request span before new inbound message: runtimeSession=${sessionCtx.runtimeSessionKey}`
+              `[insight-module] Closing previous request span before new inbound message: runtimeSession=${sessionCtx.runtimeSessionKey}`
             );
             finalizeRootSpan(
               sessionCtx,
@@ -1716,7 +1716,7 @@ export function registerHooks(
           // Close any previous pending root first.
           if (sessionCtx?.pendingRootRuntimeSessionIdentities && !sessionCtx.agentSpan) {
             logger.warn?.(
-              `[insightClaw] Closing previous request span before ${preQueuedHandoff ? "sessions_send" : "new inbound message"}: runtimeSession=${sessionCtx.runtimeSessionKey}`
+              `[insight-module] Closing previous request span before ${preQueuedHandoff ? "sessions_send" : "new inbound message"}: runtimeSession=${sessionCtx.runtimeSessionKey}`
             );
             finalizeRootSpan(
               sessionCtx,
@@ -1755,14 +1755,14 @@ export function registerHooks(
           markLifecycleEvent(startedSessionCtx, "message_received");
         }
       } catch (error) {
-        logger.debug(`[insightClaw] message_received hook failed: ${String(error)}`);
+        logger.debug(`[insight-module] message_received hook failed: ${String(error)}`);
         // Never let telemetry errors break the main flow
       }
     },
     { priority: 100 } // High priority - run first to establish context
   );
 
-  logger.info("[insightClaw] Registered message_received hook (via api.on)");
+  logger.info("[insight-module] Registered message_received hook (via api.on)");
 
   api.on(
     "message_sent",
@@ -1775,7 +1775,7 @@ export function registerHooks(
           sessionCtx = findRelatedSessionContext(runtimeSessionKey);
           if (sessionCtx) {
             logger.info(
-              `[insightClaw] message_sent: recovered trace context from related agent session ` +
+              `[insight-module] message_sent: recovered trace context from related agent session ` +
               `for runtimeSession=${runtimeSessionKey} -> ${sessionCtx.runtimeSessionKey}`
             );
           }
@@ -1785,7 +1785,7 @@ export function registerHooks(
         const messageText = extractMessageText(event);
         markLifecycleEvent(sessionCtx, "message_sent");
         logger.info(
-          `[insightClaw] message_sent observed: runtimeSession=${runtimeSessionKey}, ` +
+          `[insight-module] message_sent observed: runtimeSession=${runtimeSessionKey}, ` +
           `channel=${channel}, ${formatSessionTraceState(sessionCtx)}`
         );
         const sessionId = runtimeSessionKey !== "unknown"
@@ -1808,18 +1808,18 @@ export function registerHooks(
             );
           } else {
             logger.info(
-              `[insightClaw] message_sent observed with no pending request root to close: ` +
+              `[insight-module] message_sent observed with no pending request root to close: ` +
               `runtimeSession=${runtimeSessionKey}, ${formatSessionTraceState(sessionCtx)}`
             );
           }
         } else {
           logger.warn?.(
-            `[insightClaw] message_sent observed without active trace context: ` +
+            `[insight-module] message_sent observed without active trace context: ` +
             `runtimeSession=${runtimeSessionKey}, channel=${channel}`
           );
         }
       } catch (error) {
-        logger.debug(`[insightClaw] message_sent hook failed: ${String(error)}`);
+        logger.debug(`[insight-module] message_sent hook failed: ${String(error)}`);
       }
 
       return undefined;
@@ -1827,7 +1827,7 @@ export function registerHooks(
     { priority: -90 }
   );
 
-  logger.info("[insightClaw] Registered message_sent hook (via api.on)");
+  logger.info("[insight-module] Registered message_sent hook (via api.on)");
 
   // -- agent lifecycle startup -----------------------------------------
   // Creates an "agent turn" child span under the root request span.
@@ -1851,7 +1851,7 @@ export function registerHooks(
         let sessionCtx = getSessionTraceContext(event, ctx);
         if (sessionCtx?.pendingRootRuntimeSessionIdentities && !sessionCtx.agentSpan) {
           logger.warn?.(
-            `[insightClaw] Closing previous request span before agent restart: runtimeSession=${sessionCtx.runtimeSessionKey}, ` +
+            `[insight-module] Closing previous request span before agent restart: runtimeSession=${sessionCtx.runtimeSessionKey}, ` +
             `incomingAgent=${agentId}`
           );
           finalizeRootSpan(
@@ -1907,7 +1907,7 @@ export function registerHooks(
         if (sessionCtx?.agentSpan && sessionCtx.runtimeSessionKey === runtimeSessionKey) {
           const activeAgentId = sessionCtx.agentId || "unknown";
           logger.warn?.(
-            `[insightClaw] Duplicate ${lifecycleHookName} ignored: runtimeSession=${runtimeSessionKey}, ` +
+            `[insight-module] Duplicate ${lifecycleHookName} ignored: runtimeSession=${runtimeSessionKey}, ` +
             `activeAgent=${activeAgentId}, incomingAgent=${agentId}`
           );
           return undefined;
@@ -1941,7 +1941,7 @@ export function registerHooks(
         const joinLinks: Link[] = joinInfo?.links ?? [];
         if (joinInfo) {
           logger.info(
-            `[insightClaw] Join detected for agent=${agentId}: forkId=${joinInfo.attributes["ioa_observe.join.fork_id"]}, ` +
+            `[insight-module] Join detected for agent=${agentId}: forkId=${joinInfo.attributes["ioa_observe.join.fork_id"]}, ` +
             `branches=${joinInfo.attributes["ioa_observe.join.branch_count"]}`
           );
         }
@@ -2001,7 +2001,7 @@ export function registerHooks(
         registerAgentSpan(runtimeSessionKey, agentId, agentSpan, handoff.sequence, handoff.previousAgentName);
         if (handoff.links.length > 0) {
           logger.debug(
-            `[insightClaw] Handoff links prepared for agent=${agentId}: ${handoff.links.length} link(s), ` +
+            `[insight-module] Handoff links prepared for agent=${agentId}: ${handoff.links.length} link(s), ` +
             `seq=${handoff.attributes["ioa_observe.agent.sequence"]}, ` +
             `previous=${handoff.attributes["ioa_observe.agent.previous"] || "(none)"}`
           );
@@ -2038,9 +2038,9 @@ export function registerHooks(
         // Register in activeAgentSpans for diagnostics integration
         registerActiveAgentSpan(runtimeSessionIdentities, agentSpan);
 
-        logger.info?.(`[insightClaw] Agent turn started: agent=${agentId}, model=${model}, runtimeSession=${runtimeSessionKey}`);
+        logger.info?.(`[insight-module] Agent turn started: agent=${agentId}, model=${model}, runtimeSession=${runtimeSessionKey}`);
       } catch (error) {
-        logger.debug(`[insightClaw] ${lifecycleHookName} hook failed: ${String(error)}`);
+        logger.debug(`[insight-module] ${lifecycleHookName} hook failed: ${String(error)}`);
       }
 
       // Return undefined - don't modify system prompt
@@ -2053,7 +2053,7 @@ export function registerHooks(
     { priority: 90 }
   );
 
-  logger.info("[insightClaw] Registered before_model_resolve hook (via api.on)");
+  logger.info("[insight-module] Registered before_model_resolve hook (via api.on)");
 
   api.on(
     "before_prompt_build",
@@ -2061,7 +2061,7 @@ export function registerHooks(
     { priority: 90 }
   );
 
-  logger.info("[insightClaw] Registered before_prompt_build hook (via api.on)");
+  logger.info("[insight-module] Registered before_prompt_build hook (via api.on)");
 
   api.on(
     "before_agent_start",
@@ -2069,7 +2069,7 @@ export function registerHooks(
     { priority: 90 }
   );
 
-  logger.info("[insightClaw] Registered before_agent_start hook (via api.on)");
+  logger.info("[insight-module] Registered before_agent_start hook (via api.on)");
 
   // ── llm_input ────────────────────────────────────────────────────
   // Creates an LLM call span at the moment the request is sent to the model.
@@ -2101,7 +2101,7 @@ export function registerHooks(
             "gen_ai.agent.id": agentId,
           });
         } else {
-          logger.warn?.(`[insightClaw] No start time found for agent=${agentId} in llm_input hook — cannot record context preparation time`);
+          logger.warn?.(`[insight-module] No start time found for agent=${agentId} in llm_input hook — cannot record context preparation time`);
         }
         const span = tracer.startSpan(
           "openclaw.llm.call",
@@ -2133,7 +2133,7 @@ export function registerHooks(
           runtimeSessionKey,
           agentId,
         });
-        logger.info?.(`[insightClaw] LLM span started: model=${model}, callId=${callId}, runtimeSession=${runtimeSessionKey}`);
+        logger.info?.(`[insight-module] LLM span started: model=${model}, callId=${callId}, runtimeSession=${runtimeSessionKey}`);
         parseContext(event, histograms, sessionId, agentId);
         pendingAgentContextsMap.set(agentId+"-"+runtimeSessionKey, event);
 
@@ -2157,7 +2157,7 @@ export function registerHooks(
               });
             }
           } else {
-            logger.warn(`[insightClaw] Unable to compute downstreamContextSharing for agent=${agentId} because parent context is missing for parentCaller=${parentCaller}`);
+            logger.warn(`[insight-module] Unable to compute downstreamContextSharing for agent=${agentId} because parent context is missing for parentCaller=${parentCaller}`);
           }
         }
 
@@ -2179,7 +2179,7 @@ export function registerHooks(
     }
   );
 
-  logger.info("[insightClaw] Registered llm_input hook (via api.on)");
+  logger.info("[insight-module] Registered llm_input hook (via api.on)");
 
   // ── llm_output ───────────────────────────────────────────────────
   // Looks up the span created in llm_input, attaches output and token
@@ -2196,7 +2196,7 @@ export function registerHooks(
 
         const pendingLlm = pendingLlmSpans.get(callId);
         if (!pendingLlm) {
-          logger.warn?.(`[insightClaw] No pending LLM span for callId=${callId} — skipping output capture`);
+          logger.warn?.(`[insight-module] No pending LLM span for callId=${callId} — skipping output capture`);
           return undefined;
         }
         pendingLlmSpans.delete(callId);
@@ -2252,13 +2252,13 @@ export function registerHooks(
           getSessionId(pendingRuntimeSessionKey)
         );
         span.end();
-        logger.info?.(`[insightClaw] LLM span ended: callId=${callId}, agent=${agentId}, runtimeSession=${pendingRuntimeSessionKey}`);
+        logger.info?.(`[insight-module] LLM span ended: callId=${callId}, agent=${agentId}, runtimeSession=${pendingRuntimeSessionKey}`);
 
         const deferredCompletion = deferredAgentCompletions.get(pendingRuntimeSessionKey);
         if (deferredCompletion && countPendingLlmSpansForSession(pendingRuntimeSessionKey) === 0) {
           deferredAgentCompletions.delete(pendingRuntimeSessionKey);
           logger.info(
-            `[insightClaw] Completing deferred trace finalization for runtimeSession=${pendingRuntimeSessionKey} after final llm_output`
+            `[insight-module] Completing deferred trace finalization for runtimeSession=${pendingRuntimeSessionKey} after final llm_output`
           );
           void finalizeAgentCompletion(deferredCompletion);
         }
@@ -2269,7 +2269,7 @@ export function registerHooks(
     }
   );
 
-  logger.info("[insightClaw] Registered llm_output hook (via api.on)");
+  logger.info("[insight-module] Registered llm_output hook (via api.on)");
 
   // ── before_tool_call ─────────────────────────────────────────────
   // Creates the tool span at call time, capturing input and running security
@@ -2337,7 +2337,7 @@ export function registerHooks(
             }
           }
           logger.info(
-            `[insightClaw] Tool in fork group: tool=${toolName}, forkId=${forkAttrs["ioa_observe.fork.id"]}, ` +
+            `[insight-module] Tool in fork group: tool=${toolName}, forkId=${forkAttrs["ioa_observe.fork.id"]}, ` +
             `branch=${forkAttrs["ioa_observe.fork.branch_index"]}`
           );
         }
@@ -2368,7 +2368,7 @@ export function registerHooks(
         if (toolName === "sessions_spawn" && runtimeSessionKey !== "unknown") {
           activeSpawnOrchestratorSessionKey = runtimeSessionKey;
           logger.info?.(
-            `[insightClaw] sessions_spawn before_tool_call: runtimeSession=${runtimeSessionKey}, ` +
+            `[insight-module] sessions_spawn before_tool_call: runtimeSession=${runtimeSessionKey}, ` +
             `hasSessionCtx=${!!sessionCtx}, hasAgentSpan=${!!sessionCtx?.agentSpan}, ` +
             `hasRootSpan=${!!sessionCtx?.rootSpan}, sessionMapSize=${sessionContextMap.size}`
           );
@@ -2418,13 +2418,13 @@ export function registerHooks(
               targetAgentsMap.set(targetAgentId, agentId + "-" + runtimeSessionKey);
             }
             logger.info?.(
-              `[insightClaw] Pre-queued sessions_send handoff to [${sendTargetIds.join(", ")}], ` +
+              `[insight-module] Pre-queued sessions_send handoff to [${sendTargetIds.join(", ")}], ` +
               `runtimeSession=${runtimeSessionKey}`
             );
           }
         }
 
-        logger.info?.(`[insightClaw] Tool span started: tool=${toolName}, callId=${toolCallId}, runtimeSession=${runtimeSessionKey}`);
+        logger.info?.(`[insight-module] Tool span started: tool=${toolName}, callId=${toolCallId}, runtimeSession=${runtimeSessionKey}`);
       } catch {
         // Never let telemetry errors break the main flow
       }
@@ -2446,7 +2446,7 @@ export function registerHooks(
         handleToolOutput(event, ctx, hookConfig);
       } catch (error) {
         // Never let telemetry errors break the main flow
-        logger.error(`[insightClaw] after_tool_call hook failed: ${String(error)}`);
+        logger.error(`[insight-module] after_tool_call hook failed: ${String(error)}`);
       }
       // Return undefined to keep the tool result unchanged
       return undefined;
@@ -2454,7 +2454,7 @@ export function registerHooks(
     { priority: -100 }
   );
 
-  logger.info("[insightClaw] Registered after_tool_call hook (via api.on)");
+  logger.info("[insight-module] Registered after_tool_call hook (via api.on)");
 
   // ── tool_result_persist ──────────────────────────────────────────
   // Looks up the span created in before_tool_call, attaches output metadata,
@@ -2468,7 +2468,7 @@ export function registerHooks(
         ensureRuntime();
         handleToolOutput(event, ctx, hookConfig);
       } catch (error) {
-        logger.error(`[insightClaw] tool_result_persist hook failed: ${String(error)}`);
+        logger.error(`[insight-module] tool_result_persist hook failed: ${String(error)}`);
       }
 
       // Return undefined to keep the tool result unchanged
@@ -2477,7 +2477,7 @@ export function registerHooks(
     { priority: -100 }
   );
 
-  logger.info("[insightClaw] Registered tool_result_persist hook (via api.on)");
+  logger.info("[insight-module] Registered tool_result_persist hook (via api.on)");
 
   // -- agent_end -------------------------------------------------------
   // Ends the agent turn span AND the root request span.
@@ -2518,7 +2518,7 @@ export function registerHooks(
           cacheWriteTokens = diagUsage.usage.cacheWrite || 0;
           model = diagUsage.model || "unknown";
           costUsd = diagUsage.costUsd;
-          logger.debug(`[insightClaw] agent_end using diagnostic data: cost=$${costUsd?.toFixed(4) || "?"}`);
+          logger.debug(`[insight-module] agent_end using diagnostic data: cost=$${costUsd?.toFixed(4) || "?"}`);
         } else {
           // Fallback: parse messages manually
           for (const msg of messages) {
@@ -2536,7 +2536,7 @@ export function registerHooks(
         }
 
         const totalTokens = totalInputTokens + totalOutputTokens + cacheReadTokens + cacheWriteTokens;
-        logger.debug(`[insightClaw] agent_end tokens: input=${totalInputTokens}, output=${totalOutputTokens}, cache_read=${cacheReadTokens}, cache_write=${cacheWriteTokens}, model=${model}`);
+        logger.debug(`[insight-module] agent_end tokens: input=${totalInputTokens}, output=${totalOutputTokens}, cache_read=${cacheReadTokens}, cache_write=${cacheWriteTokens}, model=${model}`);
 
         const sessionCtx = getSessionTraceContext(event, ctx);
         const pendingLlmCount = countPendingLlmSpansForSession(runtimeSessionKey);
@@ -2563,21 +2563,21 @@ export function registerHooks(
           deferredAgentCompletions.set(runtimeSessionKey, completion);
 
           logger.info(
-            `[insightClaw] Deferring trace completion for runtimeSession=${runtimeSessionKey} until ${pendingLlmCount} pending llm span(s) close`
+            `[insight-module] Deferring trace completion for runtimeSession=${runtimeSessionKey} until ${pendingLlmCount} pending llm span(s) close`
           );
           return undefined;
         }
 
         await finalizeAgentCompletion(completion);
       } catch (error) {
-        logger.debug(`[insightClaw] agent_end hook failed: ${String(error)}`);
+        logger.debug(`[insight-module] agent_end hook failed: ${String(error)}`);
         // Silently ignore
       }
     },
     { priority: -100 }
   );
 
-  logger.info("[insightClaw] Registered agent_end hook (via api.on)");
+  logger.info("[insight-module] Registered agent_end hook (via api.on)");
 
   // Reply dispatch chain
   // Each hook adds a timestamped event to the root request span so the
@@ -2601,7 +2601,7 @@ export function registerHooks(
     }
     return undefined;
   });
-  logger.info("[insightClaw] Registered before_agent_reply hook (via api.on)");
+  logger.info("[insight-module] Registered before_agent_reply hook (via api.on)");
 
   api.on("before_message_write", (event: any, ctx: any) => {
     try {
@@ -2637,7 +2637,7 @@ export function registerHooks(
     }
     return undefined;
   });
-  logger.info("[insightClaw] Registered before_message_write hook (via api.on)");
+  logger.info("[insight-module] Registered before_message_write hook (via api.on)");
 
   api.on("message_sending", (event: any, ctx: any) => {
     try {
@@ -2660,7 +2660,7 @@ export function registerHooks(
     }
     return undefined;
   });
-  logger.info("[insightClaw] Registered message_sending hook (via api.on)");
+  logger.info("[insight-module] Registered message_sending hook (via api.on)");
 
   api.on("reply_dispatch", (event: any, ctx: any) => {
     try {
@@ -2683,7 +2683,7 @@ export function registerHooks(
     }
     return undefined;
   });
-  logger.info("[insightClaw] Registered reply_dispatch hook (via api.on)");
+  logger.info("[insight-module] Registered reply_dispatch hook (via api.on)");
 
   api.on("before_dispatch", (event: any, ctx: any) => {
     try {
@@ -2707,7 +2707,7 @@ export function registerHooks(
     }
     return undefined;
   });
-  logger.info("[insightClaw] Registered before_dispatch hook (via api.on)");
+  logger.info("[insight-module] Registered before_dispatch hook (via api.on)");
 
   api.on("subagent_spawning", (event: any, ctx: any) => {
     try {
@@ -2740,7 +2740,7 @@ export function registerHooks(
     }
     return undefined;
   });
-  logger.info("[insightClaw] Registered subagent_spawning hook (via api.on)");
+  logger.info("[insight-module] Registered subagent_spawning hook (via api.on)");
 
   api.on("subagent_spawned", (event: any, ctx: any) => {
     try {
@@ -2775,7 +2775,7 @@ export function registerHooks(
     }
     return undefined;
   });
-  logger.info("[insightClaw] Registered subagent_spawned hook (via api.on)");
+  logger.info("[insight-module] Registered subagent_spawned hook (via api.on)");
 
   api.on("subagent_delivery_target", (event: any, ctx: any) => {
     try {
@@ -2836,7 +2836,7 @@ export function registerHooks(
     }
     return undefined;
   });
-  logger.info("[insightClaw] Registered subagent_delivery_target hook (via api.on)");
+  logger.info("[insight-module] Registered subagent_delivery_target hook (via api.on)");
 
   api.on("subagent_ended", (event: any, ctx: any) => {
     try {
@@ -2896,13 +2896,13 @@ export function registerHooks(
       if (childKey) {
         childSessionToSpawnContext.delete(String(childKey));
       }
-      logger.info(`[insightClaw] subagent_ended: emitted tool.sessions_yield span, runtimeSession=${runtimeSessionKey}`);
+      logger.info(`[insight-module] subagent_ended: emitted tool.sessions_yield span, runtimeSession=${runtimeSessionKey}`);
     } catch {
       // Never block flow.
     }
     return undefined;
   });
-  logger.info("[insightClaw] Registered subagent_ended hook (via api.on)");
+  logger.info("[insight-module] Registered subagent_ended hook (via api.on)");
 
   // ==================================================================
   // EVENT-STREAM HOOKS - registered via api.registerHook()
@@ -2943,7 +2943,7 @@ export function registerHooks(
           });
           // End session lifecycle tracking on reset
           endSession(runtimeSessionKey, histograms);
-          logger.info(`[insightClaw] Session ended via command:${action}: runtimeSession=${runtimeSessionKey}`);
+          logger.info(`[insight-module] Session ended via command:${action}: runtimeSession=${runtimeSessionKey}`);
         }
 
         span.setStatus({ code: SpanStatusCode.OK });
@@ -2958,7 +2958,7 @@ export function registerHooks(
     }
   );
 
-  logger.info("[insightClaw] Registered command event hooks (via api.registerHook)");
+  logger.info("[insight-module] Registered command event hooks (via api.registerHook)");
 
   // -- Gateway startup hook --------------------------------------------
 
@@ -2986,7 +2986,7 @@ export function registerHooks(
     }
   );
 
-  logger.info("[insightClaw] Registered gateway:startup hook (via api.registerHook)");
+  logger.info("[insight-module] Registered gateway:startup hook (via api.registerHook)");
 
   // -- Periodic cleanup ------------------------------------------------
   // Safety net: clean up stale runtime-session contexts (e.g., if agent_end never fires)
@@ -3013,7 +3013,7 @@ export function registerHooks(
         now >= ctx.rootCompletionDeadlineAt
       ) {
         logger.warn?.(
-          `[insightClaw] Request span timed out waiting for outbound completion: runtimeSession=${ctx.runtimeSessionKey}, ` +
+          `[insight-module] Request span timed out waiting for outbound completion: runtimeSession=${ctx.runtimeSessionKey}, ` +
           `graceMs=${ROOT_COMPLETION_GRACE_MS}, ${formatSessionTraceState(ctx)}`
         );
         finalizeRootSpan(
@@ -3050,7 +3050,7 @@ export function registerHooks(
         unregisterActiveAgentSpan([ctx.runtimeSessionKey]);
         cleanupHandoff(ctx.runtimeSessionKey);
         cleanupForkJoin(ctx.runtimeSessionKey);
-        logger.debug(`[insightClaw] Cleaned up stale trace context for runtimeSession=${ctx.runtimeSessionKey}`);
+        logger.debug(`[insight-module] Cleaned up stale trace context for runtimeSession=${ctx.runtimeSessionKey}`);
       }
     }
   }, 60_000).unref();
@@ -3069,7 +3069,7 @@ export function registerHooks(
   function closeBlockedToolSpan(toolCallId: string, blockReason?: string): void {
     const pending = pendingToolSpans.get(toolCallId);
     if (!pending){
-      logger.info(`[insightClaw] No pending tool for callId ${toolCallId}, skipping closeBlockedToolSpan`);
+      logger.info(`[insight-module] No pending tool for callId ${toolCallId}, skipping closeBlockedToolSpan`);
       return;
     }
     pendingToolSpans.delete(toolCallId);
@@ -3093,7 +3093,7 @@ export function registerHooks(
     captureSpanToCache(span, `tool.${toolName}`, "tool", sessionKey, sessionId);
     span.end();
     logger.info(
-      `[insightClaw] Tool span closed as blocked: callId=${toolCallId}` +
+      `[insight-module] Tool span closed as blocked: callId=${toolCallId}` +
       (blockReason ? `, reason="${blockReason}"` : "")
     );
   }

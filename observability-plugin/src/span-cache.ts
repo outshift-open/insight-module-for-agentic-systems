@@ -127,7 +127,7 @@ function logCache(message: string): void {
 
 function logCacheSnapshot(reason: string): void {
   logCache(
-    `[insightClaw:span-cache] Snapshot (${reason}) ` +
+    `[insight-module:span-cache] Snapshot (${reason}) ` +
     `stats={sessionKeys:${bySessionKey.size}, sessions:${bySession.size}, traces:${byTrace.size}, ` +
     `sessionKeyRecords:${countRecords(bySessionKey)}, sessionRecords:${countRecords(bySession)}, traceRecords:${countRecords(byTrace)}} ` +
     `sessionKeys=[${formatLookupMap(bySessionKey)}] ` +
@@ -142,14 +142,14 @@ function logRecordInsert(record: SpanRecord, evicted: { sessionKey: number; sess
   const traceRecords = byTrace.get(record.traceId) ?? [];
 
   logCache(
-    `[insightClaw:span-cache] Inserted ${formatRecord(record)} ` +
+    `[insight-module:span-cache] Inserted ${formatRecord(record)} ` +
     `sessionKey=${record.sessionKey} sessionId=${record.sessionId ?? "none"} traceId=${record.traceId} ` +
     `lengths={sessionKey:${sessionKeyRecords.length}, session:${sessionRecords.length}, trace:${traceRecords.length}} ` +
     `evicted={sessionKey:${evicted.sessionKey}, session:${evicted.session}, trace:${evicted.trace}}`
   );
 
   logCache(
-    `[insightClaw:span-cache] Lookup contents after insert ` +
+    `[insight-module:span-cache] Lookup contents after insert ` +
     `sessionKey[${record.sessionKey}]=[${formatRecordList(sessionKeyRecords)}] ` +
     `session[${record.sessionId ?? "none"}]=[${formatRecordList(sessionRecords)}] ` +
     `trace[${record.traceId}]=[${formatRecordList(traceRecords)}]`
@@ -178,7 +178,7 @@ export function startSpanCache(options?: {
 
   if (!cacheEnabled) {
     stopSpanCache();
-    logCache("[insightClaw:span-cache] Disabled by config");
+    logCache("[insight-module:span-cache] Disabled by config");
     return;
   }
 
@@ -188,7 +188,7 @@ export function startSpanCache(options?: {
   flushTimer = setInterval(() => sweepStale(), intervalMs);
 
   logCache(
-    `[insightClaw:span-cache] Started (maxAge=${maxAgeMs}ms, cap=${maxRecordsPerSession}, interval=${intervalMs}ms)`
+    `[insight-module:span-cache] Started (maxAge=${maxAgeMs}ms, cap=${maxRecordsPerSession}, interval=${intervalMs}ms)`
   );
   logCacheSnapshot("start");
 }
@@ -209,7 +209,7 @@ export function stopSpanCache(): void {
   bySession.clear();
   byTrace.clear();
   bySessionKey.clear();
-  logCache("[insightClaw:span-cache] Stopped and cleared");
+  logCache("[insight-module:span-cache] Stopped and cleared");
   verboseLogsEnabled = false;
 }
 
@@ -220,7 +220,7 @@ export function stopSpanCache(): void {
 export function recordSpan(record: SpanRecord): void {
   if (!cacheEnabled) {
     logCache(
-      `[insightClaw:span-cache] Insert skipped for ${formatRecord(record)} because cache is disabled`
+      `[insight-module:span-cache] Insert skipped for ${formatRecord(record)} because cache is disabled`
     );
     return;
   }
@@ -291,7 +291,7 @@ export function getCacheStats(): { sessions: number; traces: number; sessionKeys
 export function flushBySessionKey(sessionKey: string): void {
   if (!cacheEnabled) {
     logCache(
-      `[insightClaw:span-cache] Flush skipped for session ${sessionKey}: cache is disabled`
+      `[insight-module:span-cache] Flush skipped for session ${sessionKey}: cache is disabled`
     );
     return;
   }
@@ -299,7 +299,7 @@ export function flushBySessionKey(sessionKey: string): void {
   const records = bySessionKey.get(sessionKey);
   if (!records) {
     logCache(
-      `[insightClaw:span-cache] Flush skipped for session ${sessionKey}: no cached entries`
+      `[insight-module:span-cache] Flush skipped for session ${sessionKey}: no cached entries`
     );
     return;
   }
@@ -335,7 +335,7 @@ export function flushBySessionKey(sessionKey: string): void {
   }
 
   logCache(
-    `[insightClaw:span-cache] Flushed session ${sessionKey}: ` +
+    `[insight-module:span-cache] Flushed session ${sessionKey}: ` +
     `removed ${records.length} record(s), ${traceIds.size} trace(s), ${sessionIds.size} session UUID(s)`
   );
   logCacheSnapshot(`flush:${sessionKey}`);
@@ -386,10 +386,10 @@ function sweepStale(): void {
 
   if (removedRecords > 0 || removedKeys > 0) {
     logCache(
-      `[insightClaw:span-cache] Stale sweep: removed ${removedRecords} record(s) from ${removedKeys} session key(s)`
+      `[insight-module:span-cache] Stale sweep: removed ${removedRecords} record(s) from ${removedKeys} session key(s)`
     );
   } else {
-    logCache("[insightClaw:span-cache] Stale sweep: no entries flushed");
+    logCache("[insight-module:span-cache] Stale sweep: no entries flushed");
   }
 
   logCacheSnapshot("maintenance.1m");
@@ -448,7 +448,7 @@ export function getSpansByType(spanName: string, startTime?: number, endTime?: n
       }
     }
   } else{
-    loggerRef.warn?.(`[insightClaw:span-cache] getSpansByType called with insufficient parameters: spanName=${spanName} sessionId=${sessionId} startTime=${startTime} endTime=${endTime}`);
+    loggerRef.warn?.(`[insight-module:span-cache] getSpansByType called with insufficient parameters: spanName=${spanName} sessionId=${sessionId} startTime=${startTime} endTime=${endTime}`);
     return [];
   }
 

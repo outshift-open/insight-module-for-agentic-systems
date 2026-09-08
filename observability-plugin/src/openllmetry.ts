@@ -21,10 +21,10 @@ export async function initOpenLLMetry(_config: OtelObservabilityConfig, logger: 
   const preloadActive = (globalThis as any).__OPENCLAW_OTEL_PRELOAD_ACTIVE === true;
 
   if (preloadActive) {
-    logger.info("[insightClaw] ✅ GenAI instrumentation active via NODE_OPTIONS preload (anthropic, bedrock, openai, vertexai)");
+    logger.info("[insight-module] ✅ GenAI instrumentation active via NODE_OPTIONS preload (anthropic, bedrock, openai, vertexai)");
   } else {
-    logger.info("[insightClaw] GenAI SDK instrumentation not active (preload not configured)");
-    logger.info("[insightClaw]   To enable: set NODE_OPTIONS='--import /path/to/preload.mjs' before starting openclaw");
-    logger.info("[insightClaw]   Hook-based spans (agent turns, tools, messages) are still active");
+    logger.info("[insight-module] GenAI SDK instrumentation not active (preload not configured)");
+    logger.info("[insight-module]   To enable: set NODE_OPTIONS='--import /path/to/preload.mjs' before starting openclaw");
+    logger.info("[insight-module]   Hook-based spans (agent turns, tools, messages) are still active");
   }
 }

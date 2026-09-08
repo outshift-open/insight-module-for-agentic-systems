@@ -1,6 +1,6 @@
-# InsightClaw
+# An Insight Module for Agentic Systems
 
-InsightClaw adds OpenTelemetry-based tracing and metrics to
+This project adds OpenTelemetry-based tracing and metrics to
 OpenClaw with a focus on end-to-end request visibility for multi-agent workflows.
 
 The main deliverable in this repository is a custom OpenClaw observability plugin that captures:
@@ -38,10 +38,10 @@ The main deliverable in this repository is a custom OpenClaw observability plugi
    {
      "plugins": {
        "load": {
-         "paths": ["/absolute/path/to/insightClaw/observability-plugin"]
+         "paths": ["/absolute/path/to/openclaw-deep-observability/observability-plugin"]
        },
        "entries": {
-         "insightClaw": {
+         "insight-module": {
            "enabled": true,
            "config": {
              "endpoint": "http://host.docker.internal:4318",
@@ -70,8 +70,8 @@ The main deliverable in this repository is a custom OpenClaw observability plugi
 
 ## Usage with DefenseClaw
 
-DefenseClaw is a governance plugin that enforces policies on agent behaviour. InsightClaw complements it with its observability features.
-When both plugins are loaded together, InsightClaw's hook-wrapping mechanism automatically traces DefenseClaw's handler executions,
+DefenseClaw is a governance plugin that enforces policies on agent behaviour. This module complements it with its observability features.
+When both plugins are loaded together, its hook-wrapping mechanism automatically traces DefenseClaw's handler executions,
 surfacing which tools were blocked, and what decisions were made; all within the same trace.
 
 To install DefenseClaw, follow the instructions on their [repository](https://github.com/cisco-ai-defense/defenseclaw).

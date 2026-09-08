@@ -2,7 +2,7 @@
 //  SPDX-License-Identifier: Apache-2.0
 
 /**
- * InsightClaw Plugin
+ * Insight Module Plugin
  *
  * Provides full OpenTelemetry Deep Observability for OpenClaw:
  *   - Connected distributed traces (request → agent turn → tools)
@@ -16,7 +16,7 @@
  *   {
  *     "plugins": {
  *       "entries": {
- *         "insightclaw": {
+ *         "insight-module": {
  *           "enabled": true,
  *           "config": {
  *             "endpoint": "http://localhost:4318",
@@ -60,9 +60,9 @@ const registerHooks =
 let telemetry: TelemetryRuntime | null = null;
 let unsubscribeDiagnostics: (() => void) | null = null;
 
-const insightClawPlugin = {
-  id: "insightclaw",
-  name: "InsightClaw Plugin",
+const insightModulePlugin = {
+  id: "insight-module",
+  name: "Insight Module Plugin",
   description:
     "Connected traces, cost tracking, and metrics for OpenClaw via OpenTelemetry",
 
@@ -79,7 +79,7 @@ const insightClawPlugin = {
     // ── RPC: status endpoint ────────────────────────────────────────
 
     api.registerGatewayMethod(
-      "insightclaw.status",
+      "insight-module.status",
       ({ respond }: { respond: (ok: boolean, payload?: unknown) => void }) => {
         respond(true, {
           initialized: telemetry !== null,
@@ -108,9 +108,9 @@ const insightClawPlugin = {
       ({ program }: { program: any }) => {
         program
           .command("otel")
-          .description("InsightClaw Plugin status")
+          .description("Insight Module Plugin status")
           .action(async () => {
-            console.log("🔭 InsightClaw Plugin");
+            console.log("🔭 Insight Module Plugin");
             console.log("─".repeat(40));
             console.log(`  Endpoint:        ${config.endpoint}`);
             console.log(`  Protocol:        ${config.protocol}`);
@@ -146,10 +146,10 @@ const insightClawPlugin = {
     // ── Background service ──────────────────────────────────────────
 
     api.registerService({
-      id: "insightclaw",
+      id: "insight-module",
 
       start: async () => {
-        logger.info("[insightClaw] Starting InsightClaw service...");
+        logger.info("[insight-module] Starting Insight Module service...");
 
         // 1. Initialize our OTel providers FIRST (traces + metrics)
         //    This registers our TracerProvider as global, so all spans
@@ -175,7 +175,7 @@ const insightClawPlugin = {
         // This gives us cost data and accurate token counts
         unsubscribeDiagnostics = await registerDiagnosticsListener(telemetry, logger);
         if (hasDiagnosticsSupport()) {
-          logger.info("[insightClaw] ✅ Integrated with OpenClaw diagnostics (cost tracking enabled)");
+          logger.info("[insight-module] ✅ Integrated with OpenClaw diagnostics (cost tracking enabled)");
         }
 
         // Wrap hooks for observability
@@ -184,11 +184,11 @@ const insightClawPlugin = {
         const poll = () => wrapHooks(api, hookHandles);
         setTimeout(poll, 0);
         setInterval(poll, 500);
-        logger.info("[insightClaw] ✅ pipeline active");
+        logger.info("[insight-module] ✅ pipeline active");
         logger.info(
-          `[insightClaw]   Traces=${config.traces} Metrics=${config.metrics} Logs=${config.logs}`
+          `[insight-module]   Traces=${config.traces} Metrics=${config.metrics} Logs=${config.logs}`
         );
-        logger.info(`[insightClaw]   Endpoint=${config.endpoint} (${config.protocol})`);
+        logger.info(`[insight-module]   Endpoint=${config.endpoint} (${config.protocol})`);
       },
 
       stop: async () => {
@@ -200,20 +200,20 @@ const insightClawPlugin = {
         if (telemetry) {
           await telemetry.shutdown();
           telemetry = null;
-          logger.info("[insightClaw] Telemetry shut down");
+          logger.info("[insight-module] Telemetry shut down");
         }
       },
     });
 
-    // ── Agent tool: insightclaw_status ─────────────────────────────────────
-    // Lets the agent check InsightClaw status in conversation
+    // ── Agent tool: insight_module_status ─────────────────────────────────────
+    // Lets the agent check Insight Module status in conversation
 
     api.registerTool(
       {
-        name: "insightclaw_status",
-        label: "InsightClaw Status",
+        name: "insight_module_status",
+        label: "Insight Module Status",
         description:
-          "Check the InsightClaw plugin status and configuration.",
+          "Check the Insight Module plugin status and configuration.",
         parameters: {
           type: "object",
           properties: {},
@@ -250,7 +250,7 @@ const insightClawPlugin = {
   },
 };
 
-export default insightClawPlugin;
+export default insightModulePlugin;
 
 // ── Span Cache public API ─────────────────────────────────────────
 // Re-exported so callers (e.g., tests or metric-computation helpers)
