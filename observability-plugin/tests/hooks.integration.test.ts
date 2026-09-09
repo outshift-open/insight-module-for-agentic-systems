@@ -132,7 +132,6 @@ test("registerHooks wires lifecycle hooks that create and complete request spans
       "after_tool_call",
       "agent_end",
       "before_agent_reply",
-      "before_agent_start",
       "before_dispatch",
       "before_message_write",
       "before_model_resolve",
@@ -147,7 +146,6 @@ test("registerHooks wires lifecycle hooks that create and complete request spans
       "subagent_delivery_target",
       "subagent_ended",
       "subagent_spawned",
-      "subagent_spawning",
       "tool_result_persist",
     ]);
     assert.equal(eventHooks.length, 2);
@@ -186,7 +184,7 @@ test("registerHooks wires lifecycle hooks that create and complete request spans
       hookCtx
     );
 
-    typedHooks.get("before_agent_start")?.(
+    typedHooks.get("before_model_resolve")?.(
       { agentId: "planner", model: "claude-sonnet-4", conversationId: sessionKey },
       hookCtx
     );
@@ -326,7 +324,7 @@ test("registerHooks wires lifecycle hooks that create and complete request spans
   }
 });
 
-test("registerHooks prefers before_model_resolve and keeps before_agent_start as fallback", async () => {
+test("registerHooks prefers before_model_resolve and keeps before_prompt_build as fallback", async () => {
   const telemetry = createTelemetry();
   const { api, typedHooks, logs } = createApi();
   const originalSetInterval = globalThis.setInterval;
@@ -375,10 +373,6 @@ test("registerHooks prefers before_model_resolve and keeps before_agent_start as
       { agentId: "planner", model: "claude-sonnet-4", conversationId: sessionKey },
       hookCtx
     );
-    typedHooks.get("before_agent_start")?.(
-      { agentId: "planner", model: "claude-sonnet-4", conversationId: sessionKey },
-      hookCtx
-    );
 
     now += 37;
 
@@ -423,7 +417,6 @@ test("registerHooks prefers before_model_resolve and keeps before_agent_start as
     assert.equal(agent?.attributes.get("openclaw.agent.lifecycle_hook"), "before_model_resolve");
     assert.equal(telemetry.histograms.contextPreparationDuration.calls[0]?.value, 37);
     assert.equal(logs.warn.some((message) => message.includes("Duplicate before_prompt_build ignored")), true);
-    assert.equal(logs.warn.some((message) => message.includes("Duplicate before_agent_start ignored")), true);
   } finally {
     globalThis.setInterval = originalSetInterval;
     Date.now = originalDateNow;
@@ -468,7 +461,7 @@ test("registerHooks completes a pending request root when message_sent arrives a
       hookCtx
     );
 
-    typedHooks.get("before_agent_start")?.(
+    typedHooks.get("before_model_resolve")?.(
       { agentId: "planner", model: "claude-sonnet-4", conversationId: sessionKey },
       hookCtx
     );
@@ -550,7 +543,7 @@ test("registerHooks infers outbound completion from agent_end for webchat when n
       hookCtx
     );
 
-    typedHooks.get("before_agent_start")?.(
+    typedHooks.get("before_model_resolve")?.(
       { agentId: "planner", model: "claude-sonnet-4", conversationId: sessionKey },
       hookCtx
     );
@@ -620,7 +613,7 @@ test("registerHooks links spawned subagent turns back to the spawning tool span"
     { conversationId: parentSession, channelId: "chat", agentId: "planner" }
   );
 
-  typedHooks.get("before_agent_start")?.(
+  typedHooks.get("before_model_resolve")?.(
     { agentId: "planner", model: "claude", conversationId: parentSession },
     { conversationId: parentSession, channelId: "chat", agentId: "planner" }
   );
@@ -648,7 +641,7 @@ test("registerHooks links spawned subagent turns back to the spawning tool span"
     { conversationId: parentSession, channelId: "chat", agentId: "planner" }
   );
 
-  typedHooks.get("before_agent_start")?.(
+  typedHooks.get("before_model_resolve")?.(
     { agentId: "reviewer", model: "claude", conversationId: childSession },
     { conversationId: childSession, channelId: "chat", agentId: "reviewer" }
   );
@@ -721,7 +714,7 @@ test("registerHooks links sessions_send target turns back to the sending tool sp
     { content: "Delegate to worker", metadata: { conversationId: parentSession, channelId: "chat" } },
     { conversationId: parentSession, channelId: "chat", agentId: "orchestrator" }
   );
-  typedHooks.get("before_agent_start")?.(
+  typedHooks.get("before_model_resolve")?.(
     { agentId: "orchestrator", model: "claude", conversationId: parentSession },
     { conversationId: parentSession, channelId: "chat", agentId: "orchestrator" }
   );
@@ -742,7 +735,7 @@ test("registerHooks links sessions_send target turns back to the sending tool sp
     { content: "please process this", metadata: { conversationId: targetSession, channelId: "chat" } },
     { conversationId: targetSession, channelId: "chat", agentId: "worker" }
   );
-  typedHooks.get("before_agent_start")?.(
+  typedHooks.get("before_model_resolve")?.(
     { agentId: "worker", model: "claude", conversationId: targetSession },
     { conversationId: targetSession, channelId: "chat", agentId: "worker" }
   );
@@ -848,7 +841,7 @@ test("registerHooks reuses cached requester spawn context for subagent delivery 
       requesterCtx
     );
 
-    typedHooks.get("before_agent_start")?.(
+    typedHooks.get("before_model_resolve")?.(
       { agentId: "planner", model: "claude", conversationId: requesterSession },
       requesterCtx
     );
@@ -1047,7 +1040,7 @@ test("registerHooks recovers Vertex usage fields from agent_end fallback payload
       hookCtx
     );
 
-    typedHooks.get("before_agent_start")?.(
+    typedHooks.get("before_model_resolve")?.(
       { agentId: "planner", model: "gemini-2.0-flash", conversationId: sessionKey },
       hookCtx
     );

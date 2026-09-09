@@ -179,7 +179,7 @@ export function finalizeAgentTurn(
 
 /**
  * Check if there is a completed fork group waiting for a join.
- * Called from before_agent_start to annotate the joining agent.
+ * Called from the agent lifecycle start hooks to annotate the joining agent.
  * Returns join attributes and links, then clears the completed fork.
  */
 export function consumeJoin(
