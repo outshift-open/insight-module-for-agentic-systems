@@ -3,6 +3,12 @@
   "name": "Insight Module Plugin",
   "description": "Connected traces, cost tracking, and metrics for OpenClaw via OpenTelemetry",
   "version": "0.1.4",
+  "activation": {
+    "onCapabilities": ["hook"]
+  },
+  "contracts": {
+    "tools": ["insight_module_status"]
+  },
   "uiHints": {
     "endpoint": {
       "label": "OTLP Endpoint",

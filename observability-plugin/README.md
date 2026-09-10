@@ -115,6 +115,9 @@ or `http://172.17.0.1:4318` when using Docker on Linux):
        "entries": {
          "insight-module": {
            "enabled": true,
+           "hooks": {
+             "allowConversationAccess": true
+           },
            "config": {
              "endpoint": "http://host.docker.internal:4318",
              "serviceName": "openclaw-gateway",
