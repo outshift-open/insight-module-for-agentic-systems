@@ -37,7 +37,7 @@ async function loadSdk(): Promise<void> {
   try {
     // Dynamic import to avoid build issues if SDK not available
     // @ts-expect-error - openclaw/plugin-sdk types not available at build time
-    const sdk = await import("openclaw/plugin-sdk") as any;
+    const sdk = await import("openclaw/plugin-sdk/diagnostic-runtime") as any;
     onDiagnosticEvent = sdk.onDiagnosticEvent;
   } catch {
     // SDK not available — will use fallback token extraction

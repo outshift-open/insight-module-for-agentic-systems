@@ -65,7 +65,7 @@ openclaw.request (root span)
 or webchat `agent_end` inference when no outbound signal exists
 - Agent turn duration with token breakdown
 - Fallback `openclaw.request` root span creation during `before_model_resolve`
-or `before_prompt_build`, with `before_agent_start` retained for legacy runtimes
+or `before_prompt_build`
 when inbound hooks only expose conversation metadata
 
 ### Observability of other hook-based plugins
@@ -75,7 +75,7 @@ To provide full observability of what those plugins do
 (e.g., which hooks they intercept, what decisions they make, and whether they block or modify the agent's behaviour),
 the plugin wraps the registered handlers of every other loaded plugin by patching the global hook registry at startup.
 Only **action hooks**, hooks whose return value is read by the runtime and can influence agent behaviour
-(e.g. `before_tool_call`, `before_agent_start`, `before_llm_call`), are wrapped; purely observational hooks are left untouched.
+(e.g. `before_tool_call`, `before_model_resolve`, `before_llm_call`), are wrapped; purely observational hooks are left untouched.
 
 Each wrapped handler transparently calls the original, then emits a trace record containing the hook name, source plugin ID,
 execution priority, input event/context, and the resulting value (or the error if the handler threw).
@@ -115,6 +115,9 @@ or `http://172.17.0.1:4318` when using Docker on Linux):
        "entries": {
          "insight-module": {
            "enabled": true,
+           "hooks": {
+             "allowConversationAccess": true
+           },
            "config": {
              "endpoint": "http://host.docker.internal:4318",
              "serviceName": "openclaw-gateway",

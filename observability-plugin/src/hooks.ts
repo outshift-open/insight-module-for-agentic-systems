@@ -17,7 +17,6 @@
  * Context propagation:
  *   - message_received: creates root span, stores in sessionContextMap
  *   - before_model_resolve / before_prompt_build: create child "agent turn" span under root
- *     + before_agent_start remains as a legacy fallback
  *     + agent handoff tracking via span links
  *     + join detection from previous parallel fork
  *   - tool_result_persist: creates child tool span under agent turn
@@ -1831,11 +1830,10 @@ export function registerHooks(
 
   // -- agent lifecycle startup -----------------------------------------
   // Creates an "agent turn" child span under the root request span.
-  // Prefer before_model_resolve / before_prompt_build; before_agent_start
-  // remains registered as a legacy fallback for older OpenClaw runtimes.
+  // Prefer before_model_resolve, with before_prompt_build as a fallback.
 
   const handleAgentLifecycleStart = (
-    lifecycleHookName: "before_model_resolve" | "before_prompt_build" | "before_agent_start",
+    lifecycleHookName: "before_model_resolve" | "before_prompt_build",
     event: any,
     ctx: any
   ) => {
@@ -2062,14 +2060,6 @@ export function registerHooks(
   );
 
   logger.info("[insight-module] Registered before_prompt_build hook (via api.on)");
-
-  api.on(
-    "before_agent_start",
-    (event: any, ctx: any) => handleAgentLifecycleStart("before_agent_start", event, ctx),
-    { priority: 90 }
-  );
-
-  logger.info("[insight-module] Registered before_agent_start hook (via api.on)");
 
   // ── llm_input ────────────────────────────────────────────────────
   // Creates an LLM call span at the moment the request is sent to the model.
@@ -2708,39 +2698,6 @@ export function registerHooks(
     return undefined;
   });
   logger.info("[insight-module] Registered before_dispatch hook (via api.on)");
-
-  api.on("subagent_spawning", (event: any, ctx: any) => {
-    try {
-      ensureRuntime();
-      const resolved = resolveRuntimeSessionKey(event, ctx);
-      const runtimeSessionKey = resolved !== "unknown" ? resolved : (activeSpawnOrchestratorSessionKey ?? "unknown");
-      const sessionCtx = getSessionTraceContext(event, ctx)
-        ?? (activeSpawnOrchestratorSessionKey ? sessionContextMap.get(activeSpawnOrchestratorSessionKey) : undefined);
-      markLifecycleEvent(sessionCtx, "subagent_spawning");
-      const targetAgentId = event?.agentId || "unknown";
-      const childSessionKey = event?.childSessionKey;
-      const requesterSessionKey = ctx?.requesterSessionKey;
-      if (childSessionKey && runtimeSessionKey !== "unknown") {
-        const spawnContext = sessionCtx?.agentContext ?? sessionCtx?.rootContext ?? context.active();
-        childSessionToSpawnContext.set(String(childSessionKey), spawnContext);
-      }
-      const spawningSpan = sessionCtx?.agentSpan ?? sessionCtx?.rootSpan;
-      spawningSpan?.addEvent("openclaw.subagent.spawning", {
-        "openclaw.subagent.target_agent_id": targetAgentId,
-        "openclaw.session.key": runtimeSessionKey,
-        ...(requesterSessionKey ? { "openclaw.subagent.requester_session_key": String(requesterSessionKey) } : {}),
-        ...(childSessionKey ? { "openclaw.subagent.child_session_key": String(childSessionKey) } : {}),
-        ...(event?.mode ? { "openclaw.subagent.mode": String(event.mode) } : {}),
-        ...(event?.label ? { "openclaw.subagent.label": String(event.label) } : {}),
-        ...(event?.requester?.channel ? { "openclaw.subagent.requester_channel": String(event.requester.channel) } : {}),
-        ...(event?.requester?.threadId != null ? { "openclaw.subagent.requester_thread_id": String(event.requester.threadId) } : {}),
-      });
-    } catch {
-      // Never block flow.
-    }
-    return undefined;
-  });
-  logger.info("[insight-module] Registered subagent_spawning hook (via api.on)");
 
   api.on("subagent_spawned", (event: any, ctx: any) => {
     try {
