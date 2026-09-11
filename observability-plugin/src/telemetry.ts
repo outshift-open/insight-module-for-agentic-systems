@@ -25,6 +25,8 @@ import { OTLPMetricExporter as OTLPMetricExporterGRPC } from "@opentelemetry/exp
 
 import type { OtelObservabilityConfig } from "./config.js";
 
+const TELEMETRY_VERSION = "0.1.5";
+
 // ── Types ───────────────────────────────────────────────────────────
 
 export interface TelemetryRuntime {
@@ -129,7 +131,7 @@ export interface OtelGauges {
 export function initTelemetry(config: OtelObservabilityConfig, logger: any): TelemetryRuntime {
   const resourceAttrs: Record<string, string> = {
     [ATTR_SERVICE_NAME]: config.serviceName,
-    [ATTR_SERVICE_VERSION]: "0.1.0",
+    [ATTR_SERVICE_VERSION]: TELEMETRY_VERSION,
     "openclaw.plugin": "insight-module",
     ...config.resourceAttributes,
   };
@@ -194,8 +196,8 @@ export function initTelemetry(config: OtelObservabilityConfig, logger: any): Tel
 
   // ── Instruments ─────────────────────────────────────────────────
 
-  const tracer = trace.getTracer("insight-module", "0.1.0");
-  const meter = metrics.getMeter("insight-module", "0.1.0");
+  const tracer = trace.getTracer("insight-module", TELEMETRY_VERSION);
+  const meter = metrics.getMeter("insight-module", TELEMETRY_VERSION);
 
   const counters: OtelCounters = {
     llmRequests: meter.createCounter("openclaw.llm.requests", {
