@@ -24,18 +24,14 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
-          node-version: "22"
-          cache: "npm"
-          cache-dependency-path: observability-plugin/package-lock.json
+          node-version: "24"
           registry-url: "https://registry.npmjs.org"
-
-      - name: Pin npm to v11 to fix release packaging bug with latest version
-        run: npm install -g npm@11
+          package-manager-cache: false
 
       - name: Install dependencies
         run: npm ci
@@ -59,10 +55,8 @@ jobs:
           echo "VERSION=${VERSION}" >> "$GITHUB_ENV"
 
       - name: Publish to npm
-        run: npm publish --provenance --access public
+        run: npm publish --access public
         working-directory: observability-plugin/artifact/package
-        env:
-          NODE_AUTH_TOKEN: ""
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2

@@ -43,6 +43,9 @@ The main deliverable in this repository is a custom OpenClaw observability plugi
        "entries": {
          "insight-module": {
            "enabled": true,
+           "hooks": {
+             "allowConversationAccess": true
+           },
            "config": {
              "endpoint": "http://host.docker.internal:4318",
              "serviceName": "openclaw-gateway",
