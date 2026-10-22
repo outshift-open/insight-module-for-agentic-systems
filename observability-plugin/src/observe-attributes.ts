@@ -47,6 +47,27 @@ export const ATTR_OBSERVE_AGENT_SEQUENCE = "ioa_observe.agent.sequence";
 /** Previous agent name in execution chain */
 export const ATTR_OBSERVE_AGENT_PREVIOUS = "ioa_observe.agent.previous";
 
+/** Span ID (hex) of the agent span that is active when this span starts */
+export const ATTR_OBSERVE_AGENT_SPAN_ID = "ioa_observe.agent.span_id";
+
+/** Trace ID (hex) of the agent span that is active when this span starts */
+export const ATTR_OBSERVE_AGENT_TRACE_ID = "ioa_observe.agent.trace_id";
+
+/** Span IDs (hex) of the agent spans this agent was handed off from */
+export const ATTR_OBSERVE_HANDOFF_SOURCE_SPAN_IDS = "ioa_observe.handoff.source.span_ids";
+
+/** Trace IDs (hex) of the agent spans this agent was handed off from */
+export const ATTR_OBSERVE_HANDOFF_SOURCE_TRACE_IDS = "ioa_observe.handoff.source.trace_ids";
+
+/** Agent this agent handed off to (on the sending agent span) */
+export const ATTR_OBSERVE_HANDOFF_TARGET = "ioa_observe.handoff.target";
+
+/** What signalled the handoff, e.g. runtime:sessions_spawn */
+export const ATTR_OBSERVE_HANDOFF_EVIDENCE = "ioa_observe.handoff.evidence";
+
+/** Confidence (0-1) that the handoff happened */
+export const ATTR_OBSERVE_HANDOFF_CONFIDENCE = "ioa_observe.handoff.confidence";
+
 /** Fork group ID */
 export const ATTR_OBSERVE_FORK_ID = "ioa_observe.fork.id";
 

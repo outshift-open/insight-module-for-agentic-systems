@@ -302,6 +302,9 @@ When `true` (default), the plugin additionally emits:
 
 * `ioa_observe.entity.input` / `ioa_observe.entity.output` on all payload-carrying spans
 * `ioa_observe.agent.sequence`, `ioa_observe.agent.previous`, `ioa_observe.agent.previous_sequence` on agent turn spans
+* `ioa_observe.handoff.source.span_ids`, `ioa_observe.handoff.source.trace_ids` on agent turn spans that follow another agent
+* `ioa_observe.agent.span_id`, `ioa_observe.agent.trace_id` on LLM call and tool spans (the active agent turn)
+* `ioa_observe.handoff.target`, `ioa_observe.handoff.evidence`, `ioa_observe.handoff.confidence` on the sending agent turn span when it calls `sessions_spawn` / `sessions_send` (first target only; evidence is `runtime:<tool>`, confidence `1.0`)
 * `ioa_observe.fork.*` on fork-branch tool spans
 * `ioa_observe.join.*` on joining agent turn spans
 * `ioa_observe.workflow.name` on `session.start` and `session.end` spans
@@ -311,3 +314,11 @@ Set `emitIoaObserveAttributes: false` to emit only the OTel GenAI semconv fields
 ## Operational Boundaries
 
 * SDK-level provider spans require preload-based runtime configuration and are not guaranteed in every deployment.
+
+## GenAI request/response and error attributes
+
+Emitted regardless of `emitIoaObserveAttributes`, when the OpenClaw hook event exposes the value:
+
+* `gen_ai.request.temperature`, `gen_ai.request.top_p`, `gen_ai.request.max_tokens` on LLM call spans
+* `gen_ai.response.id`, `gen_ai.response.finish_reasons` on LLM call spans
+* `error.type` on failed LLM call, tool and agent turn spans (`non_zero_exit`, `tool_error`, `agent_error`, or an error class/code for LLM calls)
