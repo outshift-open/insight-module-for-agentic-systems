@@ -40,6 +40,16 @@ interface HandoffState {
 /** Map of runtime session key → handoff state for tracking agent chains */
 const handoffMap = new Map<string, HandoffState>();
 
+/** Agent identity attributes for spans started under the session's active agent. */
+export function getActiveAgentAttributes(sessionKey: string): Record<string, string> {
+  const ctx = handoffMap.get(sessionKey)?.lastAgentSpanContext;
+  if (!ctx) return {};
+  return {
+    "ioa_observe.agent.span_id": ctx.spanId,
+    "ioa_observe.agent.trace_id": ctx.traceId,
+  };
+}
+
 export interface HandoffSeed {
   lastAgentSpanContext: SpanContext;
   lastAgentName: string;
@@ -48,7 +58,7 @@ export interface HandoffSeed {
 
 export interface AgentHandoffStart {
   links: Link[];
-  attributes: Record<string, string | number>;
+  attributes: Record<string, string | number | string[]>;
   sequence: number;
   previousAgentName?: string;
 }
@@ -62,7 +72,7 @@ export function onAgentStart(
 ): AgentHandoffStart {
   const state = handoffMap.get(sessionKey);
   const links: Link[] = [];
-  const attributes: Record<string, string | number> = {};
+  const attributes: Record<string, string | number | string[]> = {};
 
   if (state) {
     // There was a previous agent in this runtime session — create a handoff link
@@ -79,6 +89,8 @@ export function onAgentStart(
 
     attributes["ioa_observe.agent.sequence"] = sequence;
     attributes["ioa_observe.agent.previous"] = state.lastAgentName;
+    attributes["ioa_observe.handoff.source.span_ids"] = [state.lastAgentSpanContext.spanId];
+    attributes["ioa_observe.handoff.source.trace_ids"] = [state.lastAgentSpanContext.traceId];
     loggerRef?.debug && loggerRef.debug(
       `[insight-module:handoff]   spanLink=traceId:${state.lastAgentSpanContext.traceId}/spanId:${state.lastAgentSpanContext.spanId}`
     );

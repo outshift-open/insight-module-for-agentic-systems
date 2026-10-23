@@ -40,7 +40,8 @@ import {
   unregisterActiveAgentSpan,
   type MessageProcessedDiagnosticEvent,
 } from "./diagnostics.js";
-import { onAgentStart, onAgentEnd, cleanupHandoff, getHandoffSequence, registerAgentSpan, seedHandoffState, setHandoffLogger } from "./handoff.js";
+import { extractLlmRequestAttributes, extractLlmResponseAttributes, llmErrorType } from "./llm-attributes.js";
+import { onAgentStart, onAgentEnd, cleanupHandoff, getHandoffSequence, registerAgentSpan, getActiveAgentAttributes, seedHandoffState, setHandoffLogger } from "./handoff.js";
 import { registerToolSpan, finalizeAgentTurn, consumeJoin, cleanupForkJoin, setForkJoinLogger } from "./forkjoin.js";
 import {
   ObserveSpanKind,
@@ -798,7 +799,7 @@ function handleToolOutput(
 
   if (toolName === "sessions_spawn") {
     // sessions_spawn: target agent ID comes from the result, handle post-result.
-    handleSessionHandoffCall(toolName, event, span, parentContext, runtimeSessionKey, agentId, agentSequence, toolInput, config.logger);
+    handleSessionHandoffCall(toolName, event, span, parentContext, runtimeSessionKey, agentId, agentSequence, toolInput, config.logger, config.otel_config.emitIoaObserveAttributes !== false);
   }
   const result = event?.result ?? event?.message;
   let memoryOperation: "read" | "write" | "edit" | "search" | undefined;
@@ -847,6 +848,7 @@ function handleToolOutput(
         if (toolStatus.exitCode <= 0) {
           span.setStatus({ code: SpanStatusCode.OK });
         } else {
+          span.setAttribute("error.type", "non_zero_exit");
           span.setStatus({ code: SpanStatusCode.ERROR, message: `Tool exited with code ${toolStatus.exitCode}` });
           config.counters.toolErrors.add(1, {
               "tool.name": toolName,
@@ -854,6 +856,7 @@ function handleToolOutput(
           });
         }
       } else if (toolStatus.status.toLowerCase() === "failed" || toolStatus.status.toLowerCase() === "error") {
+        span.setAttribute("error.type", "tool_error");
         span.setStatus({ code: SpanStatusCode.ERROR, message: `Tool execution failed with status ${toolStatus.status}` });
         config.counters.toolErrors.add(1, {
               "tool.name": toolName,
@@ -877,6 +880,23 @@ function handleToolOutput(
 
 }
 
+/**
+ * Mark the sending agent span with the agent it handed off to.
+ * Mirrors ioa_observe.handoff.{target,evidence,confidence} from the Observe SDK;
+ * the runtime tool call is an explicit signal, so confidence is 1.0.
+ */
+function annotateHandoffSource(
+  agentSpan: Span | undefined,
+  targetAgentIds: string[],
+  toolName: string,
+  emitIoaObserve: boolean
+): void {
+  if (!emitIoaObserve || !agentSpan || targetAgentIds.length === 0) return;
+  agentSpan.setAttribute("ioa_observe.handoff.target", targetAgentIds[0]);
+  agentSpan.setAttribute("ioa_observe.handoff.evidence", `runtime:${toolName}`);
+  agentSpan.setAttribute("ioa_observe.handoff.confidence", 1.0);
+}
+
 function handleSessionHandoffCall(
     toolName: string,
     event: any,
@@ -887,6 +907,7 @@ function handleSessionHandoffCall(
     agentSequence: number,
     toolInput: any,
     logger: any,
+    emitIoaObserve = true,
   ): void {
   const targetAgentIds = extractSpawnTargetAgentIds(toolInput, event);
   const sourceAgentSpanContext = getSessionTraceContext(event)?.agentSpan?.spanContext();
@@ -913,6 +934,7 @@ function handleSessionHandoffCall(
     for (const targetAgentId of targetAgentIds) {
       targetAgentsMap.set(targetAgentId, agentId + "-" + runtimeSessionKey); //TODO merge with current pendingSpawn struct
     }
+    annotateHandoffSource(getSessionTraceContext(event)?.agentSpan, targetAgentIds, toolName, emitIoaObserve);
     if (toolName === "sessions_spawn") {
       const sessionCtx = getSessionTraceContext(event)
         ?? (runtimeSessionKey !== "unknown" ? sessionContextMap.get(runtimeSessionKey) : undefined);
@@ -1586,6 +1608,7 @@ export function registerHooks(
 
       if (errorMsg) {
         agentSpan.setAttribute("openclaw.agent.error", String(errorMsg).slice(0, 500));
+        agentSpan.setAttribute("error.type", "agent_error");
         agentSpan.setStatus({ code: SpanStatusCode.ERROR, message: String(errorMsg).slice(0, 200) });
       } else {
         agentSpan.setStatus({ code: SpanStatusCode.OK });
@@ -2104,6 +2127,8 @@ export function registerHooks(
               ...(sessionId ? { "session.id": sessionId } : {}),
               "gen_ai.agent.id": agentId,
               "gen_ai.request.model": model,
+              ...extractLlmRequestAttributes(event),
+              ...(config.emitIoaObserveAttributes !== false ? getActiveAgentAttributes(runtimeSessionKey) : {}),
             },
           },
           parentContext
@@ -2216,6 +2241,8 @@ export function registerHooks(
           span.setAttribute("gen_ai.response.model", String(model));
         }
 
+        span.setAttributes(extractLlmResponseAttributes(event));
+
         // Capture the model response
         const output = event?.output || event?.response || event?.completion || event?.message;
         if (config.captureContent && output != null) {
@@ -2229,6 +2256,7 @@ export function registerHooks(
         }
 
         if (event?.error) {
+          span.setAttribute("error.type", llmErrorType(event.error));
           span.setStatus({ code: SpanStatusCode.ERROR, message: String(event.error).slice(0, 200) });
         } else {
           span.setStatus({ code: SpanStatusCode.OK });
@@ -2312,6 +2340,7 @@ export function registerHooks(
               ...(runtimeSessionKey !== "unknown" ? { [GEN_AI_CONVERSATION_ID_ATTR]: runtimeSessionKey } : {}),
               ...(sessionId ? { "session.id": sessionId } : {}),
               "gen_ai.agent.id": agentId,
+              ...(config.emitIoaObserveAttributes !== false ? getActiveAgentAttributes(runtimeSessionKey) : {}),
             },
           },
           parentContext
@@ -2407,6 +2436,7 @@ export function registerHooks(
               });
               targetAgentsMap.set(targetAgentId, agentId + "-" + runtimeSessionKey);
             }
+            annotateHandoffSource(sessionCtx?.agentSpan, sendTargetIds, "sessions_send", config.emitIoaObserveAttributes !== false);
             logger.info?.(
               `[insight-module] Pre-queued sessions_send handoff to [${sendTargetIds.join(", ")}], ` +
               `runtimeSession=${runtimeSessionKey}`

@@ -7,6 +7,7 @@ import assert from "node:assert/strict";
 import {
   cleanupHandoff,
   getHandoffSequence,
+  getActiveAgentAttributes,
   onAgentEnd,
   onAgentStart,
   registerAgentSpan,
@@ -41,6 +42,9 @@ test("handoff tracks sequence and previous agent across turns", () => {
   assert.equal(secondStart.attributes["ioa_observe.agent.previous"], "planner");
   assert.equal(secondStart.links[0]?.attributes?.["link.type"], "agent_handoff");
   assert.equal(getHandoffSequence("handoff-1"), 1);
+  assert.deepEqual(secondStart.attributes["ioa_observe.handoff.source.span_ids"], [firstSpan.spanContext().spanId]);
+  assert.deepEqual(secondStart.attributes["ioa_observe.handoff.source.trace_ids"], [firstSpan.spanContext().traceId]);
+  assert.equal(getActiveAgentAttributes("handoff-1")["ioa_observe.agent.span_id"], firstSpan.spanContext().spanId);
 
   cleanupHandoff("handoff-1");
 });
