@@ -3,7 +3,7 @@
 This project adds OpenTelemetry-based tracing and metrics to
 OpenClaw with a focus on end-to-end request visibility for multi-agent workflows.
 
-The main deliverable in this repository is a custom OpenClaw observability plugin that captures:
+The main deliverable in this repository is the Insight Module plugin for OpenClaw, which captures:
 
 - connected request, agent, tool, and outbound-message traces
 - LLM usage, model, token, and cost enrichment
@@ -38,7 +38,7 @@ The main deliverable in this repository is a custom OpenClaw observability plugi
    {
      "plugins": {
        "load": {
-         "paths": ["/absolute/path/to/openclaw-deep-observability/observability-plugin"]
+         "paths": ["/absolute/path/to/insight-module-for-agentic-systems/observability-plugin"]
        },
        "entries": {
          "insight-module": {
